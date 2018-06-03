@@ -1,28 +1,30 @@
 import express from 'express';
 import moment from 'moment';
+import path from 'path';
 
 const router = express.Router();
 
 router.get('/', (req, res, next) => {
-  res.send('Hello freeCodeCamp challenge!');
+  res.sendFile(path.join(__dirname, '../views/index.html'));
 });
 
-router.get('/:time', (req, res, next) => {
-  const { time } = req.params;
-  let unix = null;
-  let natural = null;
-  if (Number(time) >= 0) {
-    unix = Number(time);
-    natural = moment.unix(time).format('MMMM D, YYYY');
-  } else if (Number.isNaN(Number(time)) && moment(time, 'MMMM D, YYYY').isValid()) {
-    natural = time;
-    unix = moment(time, 'MMMM D, YYYY').unix();
+router.get('/api/timestamp*', (req, res, next) => {
+  let time = req.params[0];
+
+  if (!time) {
+    time = new Date();
+  } else {
+    time = time.slice(1);
+    if (!time) time = new Date();
+    else time = new Date(time);
   }
-  res.send({ unix, natural });
-});
 
-router.get('/:time/*', (req, res, next) => {
-  res.send('API is not supported');
+  if (time.getTime()) {
+    res.send({
+      unix: time.getTime(),
+      utc: time.toUTCString()
+    });
+  } else res.send({ "error": "Invalid Date" })
 });
 
 export default router;
